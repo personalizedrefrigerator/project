@@ -656,13 +656,19 @@ function EditControl(ctx)
         me.x = 0;
     };
 
-    this.displayContent = function(content)
+    this.displayContent = function(content, processLine)
     {
         var textLines = (content || "undefined").split("\n");
+        var newLine;
 
         for (var i = 0; i < textLines.length; i++)
         {
-            me.addLine(me.lines.length, textLines[i]);
+            newLine = me.addLine(me.lines.length, textLines[i]);
+            
+            if (processLine)
+            {
+                processLine(newLine);
+            }
         }
     };
 
@@ -2536,6 +2542,7 @@ Path: ${ me.saveDir }
 
     me.clear = me.editControl.clear;
     me.displayContent = me.editControl.displayContent;
+    me.render = me.editControl.render;
 
     me.keyCanvas.width = me.keyboard.maxX;
     me.keyCanvas.height = me.keyboard.maxY;
@@ -2568,8 +2575,10 @@ Path: ${ me.saveDir }
 
 var EditorHelper = {};
 
-EditorHelper.openWindowedEditor = (initialText, onComplete) =>
+EditorHelper.openWindowedEditor = (initialText, onComplete, options) =>
 {
+    options = options || {};
+
     let runWindow = SubWindowHelper.create({ title: "Run", minWidth: 100, minHeight: 100 });
     let importExportWindow = SubWindowHelper.create({ title: "Import or Export", noResize: true });
     let keyboardWindow = SubWindowHelper.create({ title: "Keyboard", alwaysOnTop: true, noResize: true });
@@ -2581,7 +2590,7 @@ EditorHelper.openWindowedEditor = (initialText, onComplete) =>
     runWindow.enableFlex();
 
     let editor = new Editor(viewerWindow.content, keyboardWindow.content, 
-        importExportWindow.content, runWindow.content, function(source)
+        importExportWindow.content, runWindow.content, options.onRun || function(source)
     {
         runWindow.toTheFore();
     });
@@ -2605,6 +2614,11 @@ EditorHelper.openWindowedEditor = (initialText, onComplete) =>
         editor.displayContent(initialText);
         
         editor.editControl.render();
+    }
+    
+    if (options.onRun)
+    {
+        runWindow.close();
     }
     
     return editor;

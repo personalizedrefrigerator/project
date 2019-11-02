@@ -74,6 +74,12 @@ const DISCLAIMER =
 
 </script>
 
+<!-- Include any external libraries! -->
+<!--<script src = "Pyodide/pyodide.js"></script>--> <!-- Pyodide is licenced under
+                                                  the MPL v 2.0.
+            At the time of this writing, 
+         it could be found at https://github.com/iodide-project/pyodide/blob/master/LICENSE -->
+
 <!-- 
     Include libraries!
         Interesting fact: This project is a combination
@@ -115,6 +121,9 @@ const DISCLAIMER =
 <script src = "Renderer.js"></script>
 <script src = "IntroScreen.js"></script>
 
+<!-- Include libraries that make use of other, third-party libraries. -->
+<script src = "PythonConsole.js"></script>
+
 <script>
 "use strict";
 
@@ -129,21 +138,25 @@ function main()
     let modelEditorIcon = document.createElement("button");
     let currentTestIcon = document.createElement("button");
     let drawerTestIcon = document.createElement("button");
+    let pyTestIcon = document.createElement("button");
 
     modelEditorIcon.innerHTML = "Model Editor";
     textEditorIcon.innerHTML = "Text Editor";
     currentTestIcon.innerHTML = "Renderer Test";
     drawerTestIcon.innerHTML = "Test Drawer2D";
+    pyTestIcon.innerHTML = "Python Console";
 
     textEditorIcon.onclick = openEditor;
     modelEditorIcon.onclick = () => { new Modeler3D(); };
     currentTestIcon.onclick = () => { IntroScreenHelper.test(); };
     drawerTestIcon.onclick = () => { new Drawer2D(); };
+    pyTestIcon.onclick = () => { new PythonConsole(); };
 
     document.body.appendChild(modelEditorIcon);
     document.body.appendChild(textEditorIcon);
     document.body.appendChild(currentTestIcon);
     document.body.appendChild(drawerTestIcon);
+    document.body.appendChild(pyTestIcon);
 }
 
 main();

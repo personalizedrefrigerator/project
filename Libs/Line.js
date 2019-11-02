@@ -25,6 +25,7 @@ function Line(ctx, parentEditor, x, y, h, myIndex)
 
     this.editable = true;
     this.onentercommand = null;
+    this.setColorFunction = null;
 
     this.selRange = [];
 
@@ -61,6 +62,21 @@ function Line(ctx, parentEditor, x, y, h, myIndex)
 
         const getCharColor = function(index)
         {
+            // If the user has requested that
+            //this line be a specific color
+            //(e.g an error message in a console)
+            //show this color instead of any other.
+            if (me.setColorFunction)
+            {
+                let colorSetResult = me.setColorFunction(index);
+                
+                // Did the function actually return a color?
+                if (typeof colorSetResult == "string")
+                {
+                    return colorSetResult;
+                }
+            }
+        
             if (!codeEditing)
             {
                 return me.color;

@@ -32,7 +32,8 @@ SyntaxHelper.regexps =
 
 SyntaxHelper.highlighters = { "js": new JavaScriptHighlightScheme(), "css": new CSSSyntaxHighlightScheme(), "html": new HTMLSyntaxHighlightScheme(),
                     "sh": new BashHighlightScheme(),
-                    "java": new JavaHighlightScheme() };
+                    "java": new JavaHighlightScheme(),
+                    "python": new PythonHighlightScheme() };
 
 SyntaxHelper.fileExtensionToHighlighterMap =
 {
@@ -41,7 +42,8 @@ SyntaxHelper.fileExtensionToHighlighterMap =
     html: SyntaxHelper.highlighters.html,
     htm: SyntaxHelper.highlighters.html,
     sh: SyntaxHelper.highlighters.sh,
-    java: SyntaxHelper.highlighters.java
+    java: SyntaxHelper.highlighters.java,
+    py: SyntaxHelper.highlighters.python
 };
 
 SyntaxHelper.getStillOpenBrackets = function(text, 

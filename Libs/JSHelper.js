@@ -188,6 +188,15 @@ JSHelper.Events.getSupportsPointerEvents = function()
 // Mouse and touch events work much better in Safari (or seem to).
 JSHelper.Events.useLegacyEvents = true;
 
+// Whether events should be paused.
+JSHelper.Events.paused = false;
+
+// Pause/play pointer events.
+JSHelper.Events.setPaused = function(paused)
+{
+    JSHelper.Events.paused = paused;
+};
+
 // Note: The event name should not include "pointer" or "touch" or "mouse."
 //It should be up, down, move, or stop.
 JSHelper.Events.registerPointerEvent = function(eventName, target, onEvent, allowBubbling)
@@ -236,6 +245,12 @@ JSHelper.Events.registerPointerEvent = function(eventName, target, onEvent, allo
             result.pressure = event.pressure;
             result.isPrimary = event.isPrimary;
             
+            // Stop if we've been paused.
+            if (JSHelper.Events.paused)
+            {
+                return;
+            }
+            
             onEvent.call(result, result);
             
             return true;
@@ -253,6 +268,12 @@ JSHelper.Events.registerPointerEvent = function(eventName, target, onEvent, allo
             result.height = 1;
             result.pressure = 0.5;
             result.isPrimary = true;
+            
+            // If we're paused, stop.
+            if (JSHelper.Events.paused)
+            {
+                return;
+            }
             
             onEvent.call(target, result);
             
@@ -273,6 +294,11 @@ JSHelper.Events.registerPointerEvent = function(eventName, target, onEvent, allo
         
         target.addEventListener("touch" + newEventName, (event) =>
         {
+            if (JSHelper.Events.paused)
+            {
+                return;
+            }
+            
             let result, touch;
             
             let handleTouch = (touch) =>

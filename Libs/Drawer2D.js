@@ -22,7 +22,7 @@ function Drawer2D(onSubmit, options)
     // To add something to the undo stack,
     //at least two changes should have occurred
     //and five seconds passed.
-    const UNDO_TIME_DELTA = 5000;
+    const UNDO_TIME_DELTA = 2000;
     const UNDO_MIN_ACTIONS = 2;
     
     let lastUndoTime = (new Date()).getTime();
@@ -526,11 +526,11 @@ Drawer2DHelper.BasePen = function(width, color)
     
     let lastX, lastY, vx = 0, vy = 0, 
             smoothingIterations = 10, lastTime,
-            lastWeight = 0.3,
-            towardsCursorRate = 0.2,
+            lastWeight = 0.2,
+            towardsCursorRate = 0.6,
             currentX,
             currentY;
-    this.handlePointerDown = (displayCtx, drawCtx, x, y, dx, dy) =>
+    this.handlePointerDown = (displayCtx, drawCtx, x, y, dx, dy, pressure) =>
     {
         drawCtx.beginPath();
         drawCtx.moveTo(x, y);
@@ -550,11 +550,13 @@ Drawer2DHelper.BasePen = function(width, color)
     this.handlePointerMove = (displayCtx, drawCtx, x, y, dx, dy, pressure) =>
     {
         let nowTime = (new Date()).getTime();
-        let dt = (nowTime - lastTime) || 1;
+        let dt = Math.max(nowTime - lastTime, 1);
+        
+        dt = Math.min(dt, 100);
         
         drawCtx.save();
         
-        drawCtx.lineWidth = me.width * pressure * 2.0; // Pressure is at 0.5 by default.
+        drawCtx.lineWidth = me.width * (pressure) * 2.0; // Pressure is at 0.5 by default.
         drawCtx.strokeStyle = me.color;
         drawCtx.lineCap = "round";
         drawCtx.lineJoin = "round";
@@ -565,15 +567,17 @@ Drawer2DHelper.BasePen = function(width, color)
         
         for (let i = 0; i < smoothingIterations; i++)
         {
+            let distanceFromCursor = Math.sqrt(Math.pow(x - currentX, 2) + Math.pow(y - currentY, 2));
+            
+            currentMultiplier = Math.min(1, lastWeight * (2 - i / smoothingIterations));
+            
+            vx = oldVx * currentMultiplier + ((x - lastX) * (1 - currentMultiplier) / dt + (x - currentX) / dt * towardsCursorRate) * i / smoothingIterations;
+            vy = oldVy * currentMultiplier + ((y - lastY) * (1 - currentMultiplier) / dt + (y - currentY) / dt * towardsCursorRate) * i / smoothingIterations;
+            
             currentX += vx * dt / smoothingIterations;
             currentY += vy * dt / smoothingIterations;
             
             drawCtx.lineTo(currentX, currentY);
-            
-            currentMultiplier = Math.min(1, lastWeight * (2 - i / smoothingIterations));
-            
-            vx = oldVx * currentMultiplier + ((x - lastX) * (1 - lastWeight) / dt + (x - currentX) / dt * towardsCursorRate) * i / smoothingIterations;
-            vy = oldVy * currentMultiplier + ((y - lastY) * (1 - lastWeight) / dt + (y - currentY) / dt * towardsCursorRate) * i / smoothingIterations;
         }
         
         drawCtx.stroke();

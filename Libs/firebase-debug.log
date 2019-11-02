@@ -1,0 +1,46 @@
+[debug] [2019-11-02T18:42:02.256Z] ----------------------------------------------------------------------
+[debug] [2019-11-02T18:42:02.259Z] Command:       /usr/bin/node /usr/local/bin/firebase deploy
+[debug] [2019-11-02T18:42:02.260Z] CLI Version:   7.6.1
+[debug] [2019-11-02T18:42:02.260Z] Platform:      linux
+[debug] [2019-11-02T18:42:02.260Z] Node Version:  v10.15.2
+[debug] [2019-11-02T18:42:02.263Z] Time:          Sat Nov 02 2019 11:42:02 GMT-0700 (Pacific Daylight Time)
+[debug] [2019-11-02T18:42:02.263Z] ----------------------------------------------------------------------
+[debug] [2019-11-02T18:42:02.263Z] 
+[debug] [2019-11-02T18:42:02.279Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2019-11-02T18:42:02.279Z] > authorizing via signed-in user
+[debug] [2019-11-02T18:42:02.279Z] [iam] checking project henry-heino for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2019-11-02T18:42:02.282Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2019-11-02T18:42:02.282Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2019-11-02T18:42:04.155Z] <<< HTTP RESPONSE 200
+[debug] [2019-11-02T18:42:04.170Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/henry-heino:testIamPermissions  
+
+[debug] [2019-11-02T18:42:04.502Z] <<< HTTP RESPONSE 200
+[debug] [2019-11-02T18:42:04.506Z] >>> HTTP REQUEST GET https://firebase.googleapis.com/v1beta1/projects/henry-heino  
+ 
+[debug] [2019-11-02T18:42:04.856Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'henry-heino'...
+[info] 
+[info] i  deploying hosting
+[debug] [2019-11-02T18:42:04.865Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/henry-heino/versions  
+
+[debug] [2019-11-02T18:42:06.238Z] <<< HTTP RESPONSE 200
+[info] i  hosting[henry-heino]: beginning deploy...
+[info] i  hosting[henry-heino]: found 240 files in public
+[debug] [2019-11-02T18:42:10.398Z] [hosting] hash cache [cHVibGlj] stored for 240 files
+[debug] [2019-11-02T18:42:10.398Z] [hosting][hash queue][FINAL]
+[debug] [2019-11-02T18:42:10.398Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/henry-heino/versions/e2b66cb20cc74111:populateFiles  
+ <request body omitted>
+[debug] [2019-11-02T18:42:15.486Z] <<< HTTP RESPONSE 200
+[debug] [2019-11-02T18:42:15.530Z] [hosting][populate queue][FINAL]
+[debug] [2019-11-02T18:42:15.530Z] [hosting] uploads queued: 103
+[debug] [2019-11-02T18:42:29.681Z] [uploadQueue] Retrying task a0d56006d1b1c577b70a6ffc29b2bf08fcb09521ba960ec4334c79fdb893785a
+[debug] [2019-11-02T18:42:54.321Z] [uploadQueue] Retrying task 89fad049efa0b442cca25e5b08f9ec25eb3d26914635621e320dd5a89cb1b4bc
+[debug] [2019-11-02T18:43:18.905Z] [uploadQueue] Retrying task 52617624cfb64b1ff82349cf9fdabed5d995c7b97bc1632303e0f17de91c35c2
+[debug] [2019-11-02T18:43:28.115Z] [uploadQueue] Retrying task 2663e894e85d5769c1242dede99723044fe961d648f440ae053b337622e86c81
+[debug] [2019-11-02T18:43:49.483Z] [uploadQueue] Retrying task a60ce27a98dfb1bd3d0134c6320488f419e28dc54fee4e367f7de06d2bb785bc
+[debug] [2019-11-02T18:44:02.170Z] [uploadQueue] Retrying task 0619997169e1b58bcb24fc5a57a17a50c594ddd2d40d3e4ed204a48bf22d5f41
+[debug] [2019-11-02T18:44:18.072Z] [uploadQueue] Retrying task 1776022daea4c121973125404cfa6356988d848becbcbfa6f9dd74dfd496be7b
+[debug] [2019-11-02T18:44:37.071Z] [uploadQueue] Retrying task 3ad18d7b2453bb4a9c8764686241266bef66d45e67440b7c2dac26eea1b0deb7
+[debug] [2019-11-02T18:45:46.499Z] [uploadQueue] Retrying task 0619997169e1b58bcb24fc5a57a17a50c594ddd2d40d3e4ed204a48bf22d5f41

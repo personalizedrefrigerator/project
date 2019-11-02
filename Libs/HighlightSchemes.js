@@ -110,6 +110,8 @@ function JavaHighlightScheme(originalHighlighter)
         "else": "#ca33ca",
         "void": "#ca40cc",
         "int": "#ca40cc",
+        "double": "#ca40cc",
+        "float": "#ca40cc",
         "long": "#ca40cc",
         "short": "#ca40cc",
         "char": "#ca40cc",
@@ -120,24 +122,29 @@ function JavaHighlightScheme(originalHighlighter)
         ")": "#00ffff",
         "[": "#00ffff",
         "]": "#00ffff",
-        "==": "#00aabb",
-        "===": "#00aabb",
-        "!": "#00aabb",
-        "=": "#00aabb",
-        ">": "#00aabb",
-        "<": "#00aabb",
-        ">=": "#00aabb",
-        "<=": "#00aabb",
-        "%": "#00aabb",
-        "+": "#00aabb",
-        "-": "#00aabb",
-        "*": "#00aabb",
-        "/": "#00aabb",
-        ";": "#00aabb",
+        "==": "#33aabb",
+        "===": "#33aabb",
+        "!": "#33aabb",
+        "=": "#33aabb",
+        ">": "#33aabb",
+        "<": "#33aabb",
+        ">=": "#33aabb",
+        "<=": "#33aabb",
+        "%": "#33aabb",
+        "+": "#33aabb",
+        "-": "#33aabb",
+        "*": "#33aabb",
+        "/": "#33aabb",
+        "%=": "#33aabb",
+        "+=": "#33aabb",
+        "-=": "#33aabb",
+        "*=": "#33aabb",
+        "/=": "#33aabb",
+        ";": "#33aabb",
         ",": "#c0aabb",
         ":": "#f0aabb",
-        "&": "#00aabb",
-        "|": "#00aabb",
+        "&": "#33aabb",
+        "|": "#33aabb",
         "do": "#ab00cd",
         "while": "#ab00cd",
         "for": "#ab00cd",
@@ -198,6 +205,9 @@ function JavaHighlightScheme(originalHighlighter)
         "TreeSet": "#ccaaff",
         "Set": "#ccaaff",
         "List": "#ccaaff",
+        "Stack": "#eeaaff",
+        "Queue": "#eeaaff",
+        "LinkedList": "#aaaaff",
         "StringBuilder": "#ddaaff",
         "Scanner": "#ddaaff",
         "toString": "#aaaaff",
@@ -256,7 +266,7 @@ function JavaHighlightScheme(originalHighlighter)
     this.labelSearchSeparators["|"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
     this.labelSearchSeparators[","] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
     this.labelSearchSeparators[":"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
-    this.labelSearchSeparators["="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
+    this.labelSearchSeparators["="] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
     this.labelSearchSeparators["=="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
     this.labelSearchSeparators["==="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
     this.labelSearchSeparators["=>"] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
@@ -875,3 +885,191 @@ function HTMLSyntaxHighlightScheme()
         }
     }
 }
+
+function PythonHighlightScheme(originalHighlighter)
+{
+    this.id = "PythonHighlight";
+
+    this.labelMap =
+    {
+        "LONG_QUOTE": "red",
+        "if": "#ca53ca",
+        "else": "#ca53ca",
+        "elif": "#ca53ca",
+        "def": "#ca60cc",
+        "class": "#ca60cc",
+        "__init__": "#ca60cc",
+        "{": "#30ffff",
+        "}": "#30ffff",
+        "==": "#70aabb",
+        "is": "#70aabb",
+        "not": "#70aabb",
+        "=": "#70aabb",
+        ">": "#70aabb",
+        "<": "#70aabb",
+        "%": "#70aabb",
+        "+": "#70aabb",
+        "-": "#70aabb",
+        "*": "#70aabb",
+        "/": "#70aabb",
+        "do": "#ab00cd",
+        "while": "#ab00cd",
+        "for": "#ab00cd",
+        "in": "#ab70cd",
+        "range": "#fb70fd",
+        "str": "#fb70fd",
+        "global": "#fbfd00",
+        "False": "#abab00",
+        "True": "#abab00",
+        "null": "#00ff66",
+        "None": "#bbbbdd",
+        "lambda": "#ea00ea",
+        "self": "#00ffff",
+        "const": "#ffee00",
+        "return": "#ff6677",
+        "switch": "#00ccff",
+        "case": "#00ccff",
+        "default": "#00ccff",
+        "break": "#bb00ee",
+        "import": "#ffaa00",
+        "from": "#ffaa00",
+        "len": "#77eecc",
+        "exec": "#ff7777",
+        "[": "#80aaff",
+        "]": "#80aaff",
+        "or": "#80aaff",
+        "and": "#80aaff",
+        "^": "#80aaff",
+        "(": "#ffaece",
+        ")": "#ffaece",
+        ":": "#ffbece"
+    };
+
+
+    this.labelMap[SyntaxHelper.COMMENT] = "green";
+    //this.labelMap[SyntaxHelper.COMMENT_MULTI_LINE] = "green";
+    this.labelMap[SyntaxHelper.STRING + "1"] = "yellow";
+    this.labelMap[SyntaxHelper.STRING + "2"] = "yellow";
+    this.labelMap[SyntaxHelper.NUMBER_START] = "pink";
+    this.labelMap[SyntaxHelper.NUMBER_STOP] = "pink";
+    this.labelMap[SyntaxHelper.END_SCRIPT] = "#44ffff"; // End script.
+
+
+    this.labelSearchSeparators =
+    {
+    };
+
+    this.labelSearchSeparators[SyntaxHelper.NUMBER_START] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators[SyntaxHelper.NUMBER_STOP] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators[SyntaxHelper.STRING + "1"] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators[SyntaxHelper.STRING + "2"] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators[SyntaxHelper.COMMENT] = SyntaxHelper.SEARCH_ALL;
+    //this.labelSearchSeparators["__constructor"] = SyntaxHelper.SEARCH_ALL;
+    // this.labelSearchSeparators[SyntaxHelper.END_SCRIPT] = SyntaxHelper.SEARCH_ALL,
+    //this.labelSearchSeparators[SyntaxHelper.COMMENT_MULTI_LINE] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators["LONG_QUOTE"] = SyntaxHelper.SEARCH_ALL;
+    this.labelSearchSeparators["{"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["}"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["("] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators[")"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators[":"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["["] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["]"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["^"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["!"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators[";"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
+    this.labelSearchSeparators["=="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
+    this.labelSearchSeparators["==="] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
+    this.labelSearchSeparators["=>"] = SyntaxHelper.COMPARISON_SEARCH_SEPARATOR;
+    this.labelSearchSeparators[">"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["<"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["%"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["*"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["+"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["-"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+    this.labelSearchSeparators["/"] = SyntaxHelper.SINGLE_CHAR_SEPARATOR;
+
+    this.labelSearchRegexes =
+    {
+        start:
+        {
+        },
+        end:
+        {
+        }
+    };
+
+    this.labelExtensions =
+    {
+        start: {},
+        end: {}
+    };
+
+    //this.labelSearchRegexes.start[SyntaxHelper.COMMENT_MULTI_LINE] = new RegExp("\\\/\\\*", "g");
+    this.labelSearchRegexes.start[SyntaxHelper.COMMENT] = new RegExp("\\\/\\\/", "g");
+    this.labelSearchRegexes.start[SyntaxHelper.STRING + "1"] = new RegExp("[\\\"]", "g");
+    this.labelSearchRegexes.start[SyntaxHelper.STRING + "2"] = new RegExp("[\\\']", "g");
+    this.labelSearchRegexes.start["LONG_QUOTE"] = new RegExp("[\"\']{3}", "g");
+    // this.labelSearchRegexes.start[SyntaxHelper.END_SCRIPT] = new RegExp("\\<\\w*/\\w*script\\w*\\>");
+
+    //this.labelSearchRegexes.end[SyntaxHelper.COMMENT_MULTI_LINE] = new RegExp("\\\*\\\/", "g");
+    this.labelSearchRegexes.end[SyntaxHelper.STRING + "1"] = new RegExp("[\\\"]", "g");
+    this.labelSearchRegexes.end[SyntaxHelper.STRING + "2"] = new RegExp("[\\\']", "g");
+    this.labelSearchRegexes.end["LONG_QUOTE"] = this.labelSearchRegexes.start["LONG_QUOTE"];
+    this.labelSearchRegexes.end["__constructor"] = new RegExp("constructor", "g");
+    this.labelSearchRegexes.end[SyntaxHelper.NUMBER_START] = SyntaxHelper.regexps.NUMBER_START;
+    this.labelSearchRegexes.end[SyntaxHelper.NUMBER_STOP] = SyntaxHelper.regexps.NUMBER_STOP;
+
+
+    this.labelSearchFunctions =
+    {
+        start: {},
+        end: {}
+    };
+
+    this.multiLineLabels =
+    {
+        "LONG_QUOTE": true
+    };
+
+    this.multiLineLabels[SyntaxHelper.COMMENT_MULTI_LINE] = true;
+
+    this.highlightSchemeSpecificLabels =
+    {
+
+    };
+
+    // this.transitionHighlighterLabels[SyntaxHelper.TRANSIT_HIGHLIGHT_BLOCK] = originalHighlighter;
+
+    var addedLabels = {};
+    this.labelPrecedence =
+    [["COMMENT", "QUOTE2", "QUOTE1", "LONG_QUOTE", SyntaxHelper.COMMENT_MULTI_LINE], "=>", [">", "=", "<"]];
+
+    // Add any un-recorded labels to the precedence list.
+    for (var i = 0; i < this.labelPrecedence.length; i++)
+    {
+        if (typeof this.labelPrecedence[i] !== "object")
+        {
+            addedLabels[this.labelPrecedence[i]] = true;
+        }
+        else
+        {
+            for (var j = 0; j < this.labelPrecedence[i].length; j++)
+            {
+                addedLabels[this.labelPrecedence[i][j]] = true;
+            }
+        }
+    }
+
+    for (var label in this.labelMap)
+    {
+        if (!addedLabels[label])
+        {
+            this.labelPrecedence.push(label);
+
+            addedLabels[label] = true;
+        }
+    }
+}
+

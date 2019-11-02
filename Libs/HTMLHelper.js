@@ -502,6 +502,73 @@ HTMLHelper.addColorChooser = function(initialColor, parent, onChange, inputStep,
             alphaInput.value = Math.floor(alpha / inputStep);
             
             alphaInput.style.flexGrow = 1;
+        },
+        "Dropper": (parent) =>
+        {
+            parent.innerHTML = "";
+            
+            const PRE_SELECT_TEXT = "Select a Color";
+            const SELECTING_COLOR_TEXT = "Click on an Untainted Canvas";
+            
+            let selectColorButton;
+            
+            selectColorButton = HTMLHelper.addButton("Select a Color", parent, function()
+            {
+                selectColorButton.innerHTML = SELECTING_COLOR_TEXT;
+                
+                requestAnimationFrame(() =>
+                {
+                    let listener;
+                    
+                    listener = (event) =>
+                    {
+                        event.preventDefault();
+                        
+                        // Clear the listener.
+                        document.documentElement.removeEventListener("pointerdown", listener);
+                        
+                        // Note the removed listener.
+                        selectColorButton.innerHTML = PRE_SELECT_TEXT;
+                        
+                        // Unpause events.
+                        JSHelper.Events.setPaused(false);
+                        
+                        let target;
+                        target = event.target;
+                        
+                        if (target.nodeName.toLowerCase() === "canvas")
+                        {
+                            // Get a color.
+                            let canvas = document.createElement("canvas");
+                            
+                            canvas.width = target.clientWidth;
+                            canvas.height = target.clientHeight;
+                            
+                            let ctx = canvas.getContext("2d");
+                            
+                            ctx.drawImage(target, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                            
+                            let imageData = ctx.getImageData(event.offsetX, event.offsetY, 2, 2);
+                            let data = imageData.data;
+                            
+                            currentColor.x = data[0] / 255.0;
+                            currentColor.y = data[1] / 255.0;
+                            currentColor.z = data[2] / 255.0;
+                            alpha = data[3] / 255.0;
+                            
+                            onUpdate();
+                        }
+                    };
+                    
+                    document.documentElement.addEventListener("pointerdown", listener, false);
+                    
+                    // Pause all events.
+                    JSHelper.Events.setPaused(true);
+                });
+            });
+            
+            selectColorButton.style.textAlign = "center";
+            selectColorButton.style.flexGrow = 1;
         }
     }, container, "RGB", true); // Show the RGB tab by default and DO
                                 //run generation functions on each tab switch.
