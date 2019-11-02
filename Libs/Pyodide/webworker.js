@@ -1,4 +1,4 @@
-self.languagePluginUrl = 'https://personalizedrefrigerator.github.io/project/Libs/Pyodide/'
+self.languagePluginUrl = 'https://pyodide.cdn.iodide.io/';//'https://personalizedrefrigerator.github.io/project/Libs/Pyodide/'
 importScripts('./pyodide.js')
 
 let messagesToHandle = [];
