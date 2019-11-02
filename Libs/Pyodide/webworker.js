@@ -1,5 +1,5 @@
-//self.languagePluginUrl = 'https://pyodide.cdn.iodide.io/'
-importScripts('./pyodide.js')
+//self.languagePluginUrl = ''
+importScripts('pyodide.js')
 
 let messagesToHandle = [];
 let handleMessages = undefined;
