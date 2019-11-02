@@ -1,5 +1,5 @@
-self.languagePluginUrl = 'https://pyodide.cdn.iodide.io/';//'https://personalizedrefrigerator.github.io/project/Libs/Pyodide/'
-importScripts('./pyodide.js')
+self.languagePluginUrl = 'https://personalizedrefrigerator.github.io/project/Libs/Pyodide/';
+importScripts('pyodide_dev.js');
 
 let messagesToHandle = [];
 let handleMessages = undefined;
