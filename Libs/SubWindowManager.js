@@ -284,6 +284,16 @@ function SubWindow(globals, options)
     var maxWidth = options.maxWidth;
     var maxHeight = options.maxHeight;
     
+    let getMaxWidth = () =>
+    {
+        return maxWidth || window.innerWidth || parent.clientWidth;
+    };
+    
+    let getMaxHeight = () =>
+    {
+        return maxHeight || window.innerHeight || parent.clientHeight;
+    };
+    
     var onCloseListener = undefined;
     
     this.content = document.createElement("div");
@@ -372,14 +382,14 @@ function SubWindow(globals, options)
             toHeight = minHeight;
         }
 
-        if (maxWidth !== undefined && toWidth > maxWidth)
+        if (toWidth > getMaxWidth())
         {
-            toWidth = maxWidth;
+            toWidth = getMaxWidth();
         }
 
-        if (maxHeight !== undefined && toHeight > maxHeight)
+        if (toHeight > getMaxHeight())
         {
-            toHeight = maxHeight;
+            toHeight = getMaxHeight();
         }
     });
     
@@ -531,26 +541,16 @@ function SubWindow(globals, options)
             runSizeTransition = true;
         }
         
-        if (maxHeight === undefined)
+        if (me.container.clientWidth > getMaxWidth())
         {
-            maxHeight = window.innerHeight || parent.clientHeight;
-        }
-        
-        if (maxWidth === undefined)
-        {
-            maxWidth = window.innerWidth || parent.clientWidth;
-        }
-        
-        if (me.container.clientWidth > maxWidth)
-        {
-            toWidth = maxWidth;
+            toWidth = getMaxWidth();
             
             runSizeTransition = true;
         }
         
-        if (me.container.clientHeight > maxHeight)
+        if (me.container.clientHeight > getMaxHeight())
         {
-            toHeight = maxHeight;
+            toHeight = getMaxHeight();
             
             runSizeTransition = true;
         }
@@ -731,12 +731,12 @@ function SubWindow(globals, options)
         {
             me.toTheFore();
         
-            if ((width + dx > minWidth || dx > 0) && (width + dx < maxWidth || dx < 0))
+            if ((width + dx > minWidth || dx > 0) && (width + dx < getMaxWidth() || dx < 0))
             {
                 width += dx;
             }
             
-            if ((height + dy > minHeight || dy > 0) && (height + dy < maxHeight || dy < 0))
+            if ((height + dy > minHeight || dy > 0) && (height + dy < getMaxHeight() || dy < 0))
             {
                 height += dy;
             }
