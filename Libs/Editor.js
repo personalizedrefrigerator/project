@@ -14,7 +14,7 @@ const EDITOR_SOURCE = "<!DOCTYPE " + "html>\n"
                      + 
                      document.documentElement.outerHTML;
 
-const VERSION_CODE = "1.06 (Main)";
+const VERSION_CODE = "1.07 (Main)";
 
 function EditControl(ctx)
 {
@@ -185,10 +185,15 @@ function EditControl(ctx)
         return ArrayHelper.softCopy(me.redoStack);
     };
 
-    this.saveState = function(doNotAddToStack)
+    this.saveState = function(doNotAddToStack, excludeText)
     {
         var saveState = {};
-        saveState.content = me.getText(); // TODO: Make this faster.
+        
+        if (!excludeText)
+        {
+            saveState.content = me.getText(); // TODO: Make this faster.
+        }
+        
         saveState.viewOffset = me.viewOffset * 1;
         saveState.editable = me.editable;
         saveState.highlighter = me.syntaxSelector.getDefaultHighlighter();
@@ -202,6 +207,15 @@ function EditControl(ctx)
         
         return saveState;
     };
+    
+    // Clears and saves state. Permits caching of lines,
+    //rather than the entire content of the document.
+    this.saveStateAndClear = function()
+    {
+        let saveState = me.saveState(false, true);
+        saveState.lines = me.lines; // Cache the editor's lines.
+        me.clear();
+    };
 
     this.restoreState = function(lastState)
     {
@@ -210,7 +224,16 @@ function EditControl(ctx)
         if (lastState !== undefined)
         {
             me.clear();
-            me.displayContent(lastState.content);
+            
+            if (lastState.content)
+            {
+                me.displayContent(lastState.content);
+            }
+            else if (lastState.lines) // If a different set of lines was cached...
+            {
+                me.lines = lastState.lines;
+            }
+            
             me.viewOffset = lastState.viewOffset;
             me.editable = lastState.editable;
             me.syntaxSelector.setDefaultHighlighter(lastState.highlighter);
@@ -1171,8 +1194,7 @@ function Editor(textViewerParentElement, keyboardParentElement,
 
             if (resultNotes !== "SUCCESS")
             {
-                me.editControl.saveState();
-                me.editControl.clear();
+                me.editControl.saveStateAndClear();
                 me.editControl.setEditable(false);
                 me.editControl.displayContent("Error: `" + resultNotes + "`.");
 
@@ -1250,8 +1272,7 @@ function Editor(textViewerParentElement, keyboardParentElement,
             {
                 var textContent = me.editControl.getText();
                 var linesCount = me.editControl.lines.length;
-                me.editControl.saveState();
-                me.editControl.clear();
+                me.editControl.saveStateAndClear();
 
                 me.editControl.setEditable(false);
 
@@ -1686,8 +1707,7 @@ Path: ${ me.saveDir }
             return;
         }
         
-        me.editControl.saveState();
-        me.editControl.clear();
+        me.editControl.saveStateAndClear();
         
         viewingAdvancedOptions = true;
 
@@ -1846,8 +1866,7 @@ Path: ${ me.saveDir }
             var text = me.editControl.getText().split("\n");
             var syntaxChecker = new SyntaxChecker();
         
-            me.editControl.saveState();
-            me.editControl.clear();
+            me.editControl.saveStateAndClear();
             
             var exitLine = me.editControl.appendLine("Exit");
             exitLine.focus();
@@ -1898,9 +1917,7 @@ Path: ${ me.saveDir }
         var textToCheck = me.editControl.getText();
         var wordsToCheck = me.editControl.getText().split(/[ \t\n.;!?=0-9]/g);
 
-        me.editControl.saveState();
-
-        me.editControl.clear();
+        me.editControl.saveStateAndClear();
 
         var spellingDictionaryPath = app.getInternalStorageDirectory() + "/spellcheck.txt";
 
@@ -2192,8 +2209,7 @@ Path: ${ me.saveDir }
 
             var currentPath = basePath;
 
-            me.editControl.saveState();
-            me.editControl.clear();
+            me.editControl.saveStateAndClear();
 
             me.editControl.setEditable(true);
 
@@ -2343,7 +2359,7 @@ Path: ${ me.saveDir }
         {
             var lines = me.editControl.getText().split("\n");
 
-            me.editControl.saveState();
+            me.editControl.saveStateAndClear();
 
             me.editControl.setEditable(true);
 
@@ -2356,8 +2372,6 @@ Path: ${ me.saveDir }
 
             var setUpInputs = function()
             {
-                me.editControl.clear();
-
                 var firstLine = me.editControl.appendLine(replaceMode ? "Replace With: " : "Find: ");
                 firstLine.editable = false;
 
@@ -2543,6 +2557,10 @@ Path: ${ me.saveDir }
     me.clear = me.editControl.clear;
     me.displayContent = me.editControl.displayContent;
     me.render = me.editControl.render;
+    me.scrollToFocus = () =>
+    {
+        me.editControl.shiftViewIfNecessary(me.editControl.getSelEnd().y);
+    };
 
     me.keyCanvas.width = me.keyboard.maxX;
     me.keyCanvas.height = me.keyboard.maxY;

@@ -155,6 +155,7 @@ function PythonConsole()
         });
     };
     
+    let promptLine = undefined;
     let createPrompt = (promptText) =>
     {    
         promptText = promptText || ">>> ";
@@ -170,20 +171,32 @@ function PythonConsole()
         };
         
         newLine.focus();
-        newLine.cursorPosition = newLine.text.length;
-        consoleWindow.editControl.shiftViewIfNecessary(consoleWindow.editControl.getSelEnd().y);
+        consoleWindow.scrollToFocus();
+        promptLine = newLine;
+        
         
         newLine.onentercommand = () =>
         {
             try
             {
-                newLine.onentercommand = undefined;
+                newLine.onentercommand = function()
+                {
+                    if (promptLine)
+                    {
+                        promptLine.text = newLine.text;
+                        promptLine.focus();
+                        
+                        consoleWindow.scrollToFocus();
+                    }
+                };
+                
                 newLine.editable = false;
                 
-                pythonConsoleConnection.push(newLine.text.substring(promptText.length)).then(
+                let codeToRun = newLine.text.substring(promptText.length);
+                
+                pythonConsoleConnection.push(codeToRun).then(
                 (result) =>
                 {
-                    console.log(">> RESULT: " + result);
                     if (!result)
                     {
                         handlePyResult().then(() =>
@@ -193,7 +206,20 @@ function PythonConsole()
                     }
                     else
                     {
-                        createPrompt("... ");
+                        let newPrompt = createPrompt("... ");
+                        
+                        // Indent.
+                        for (let i = 0; i < codeToRun.length; i++)
+                        {
+                            if (codeToRun.charAt(i) == " ")
+                            {
+                                newPrompt.text += " ";
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
                     }
                 }).catch((error) =>
                 {
@@ -217,8 +243,15 @@ function PythonConsole()
         // Display changes.
         requestAnimationFrame(() =>
         {
+            // Move the cursor.
+            newLine.cursorPosition = newLine.text.length;
+            
+            // Render.
             consoleWindow.render();
         });
+        
+        // Return the line.
+        return newLine;
     };
     
     // Run python.
