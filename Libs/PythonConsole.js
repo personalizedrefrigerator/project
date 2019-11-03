@@ -1,12 +1,13 @@
 "use strict";
 
 const PYODIDE_WEB_WORKER_URL = "Pyodide/webworker.js";
-const PYTHON_WORKER = new Worker(PYODIDE_WEB_WORKER_URL);
+const USE_PYTHON_WORKER = false;
+const PYTHON_WORKER = USE_PYTHON_WORKER ? new Worker(PYODIDE_WEB_WORKER_URL) : undefined;
 
 function PythonConsole()
 {
     // Create UI.
-    let consoleWindow = EditorHelper.openWindowedEditor("... Loading ...");
+    let consoleWindow = EditorHelper.openWindowedEditor("%%% PY");
     let pythonConsoleConnection = { push: (content) => { console.error("NOT INITIALIZED"); } };
     let promptColor = "orange";
     let STDOUT_COLOR = "#00ffff";
@@ -19,45 +20,49 @@ function PythonConsole()
     consoleWindow.editControl.setDefaultHighlightScheme("py");
     
     // Handle events from python.
-    pythonWorker.onmessage = (event) =>
+    if (pythonWorker) // The pythonWorker does not seem to work in all browsers...
+                      // If it hasn't been defined, don't use it.
     {
-        const { results, errors } = event.data;
-        
-        if (onMessageListeners.length > 0)
+        pythonWorker.onmessage = (event) =>
         {
-            // Notify the first.
-            if (results || !errors)
+            const { results, errors } = event.data;
+            
+            if (onMessageListeners.length > 0)
             {
-                (onMessageListeners[0])(results);
+                // Notify the first.
+                if (results || !errors)
+                {
+                    (onMessageListeners[0])(results);
+                }
+                else
+                {
+                    (onMessageListeners[0])(errors);
+                }
+                
+                onMessageListeners = onMessageListeners.splice(1);
             }
             else
             {
-                (onMessageListeners[0])(errors);
+                console.log(results);
+                console.warn(errors);
             }
-            
-            onMessageListeners = onMessageListeners.splice(1);
-        }
-        else
+        };
+        
+        pythonWorker.onerror = (event) =>
         {
-            console.log(results);
-            console.warn(errors);
-        }
-    };
-    
-    pythonWorker.onerror = (event) =>
-    {
-        if (onMessageListeners.length > 0)
-        {
-            onMessageListeners[0]({ filename: event.filename, line: event.lineno,
-                                                  message: event.message });
-            
-            onMessageListeners = onMessageListeners.splice(1);
-        }
-        else
-        {
-            console.warn(event.message + " ( " + event.filename + ":" + event.lineno + " ) " );
-        }
-    };
+            if (onMessageListeners.length > 0)
+            {
+                onMessageListeners[0]({ filename: event.filename, line: event.lineno,
+                                                      message: event.message });
+                
+                onMessageListeners = onMessageListeners.splice(1);
+            }
+            else
+            {
+                console.warn(event.message + " ( " + event.filename + ":" + event.lineno + " ) " );
+            }
+        };
+    }
     
     let onMessageListeners = []; //  A stack of everyone waiting for
                                  // a response from Python.
@@ -70,12 +75,8 @@ function PythonConsole()
     {
         let result = new Promise((resolve, reject) =>
         {
-            console.log("PROMISE CREATED...");
-            
             onMessageListeners.push((results, failures) =>
             {
-                console.log("LISTENER CALLED: " + results);
-                
                 resolve(results);
                 
                 if (failures && !doNotRejectErrors)
@@ -90,12 +91,20 @@ function PythonConsole()
     
     let runPython = (code) =>
     {
-        pythonWorker.postMessage(
+        // Can we use the worker?
+        if (pythonWorker)
         {
-            python: code
-        });
-        
-        return nextResponsePromise();
+            pythonWorker.postMessage(
+            {
+                python: code
+            });
+            
+            return nextResponsePromise();
+        } // If not,
+        else
+        {
+            return pyodide.runPythonAsync(code);
+        }
     };
     
     window.runPython = runPython;
@@ -104,6 +113,9 @@ function PythonConsole()
     {
         let stdoutContent = await runPython("sys.stdout.getvalue()");
         let stderrContent = await runPython("sys.stderr.getvalue()");
+        
+        await runPython("sys.stdout.truncate(0)\nsys.stdout.seek(0)");
+        await runPython("sys.stderr.truncate(0)\nsys.stderr.seek(0)");
         
         if (stdoutContent)
         {
@@ -183,6 +195,15 @@ function PythonConsole()
                     {
                         createPrompt("... ");
                     }
+                }).catch((error) =>
+                {
+                    error = error + "";
+                    runPython("sys.stderr.write('''" + error.split("'''").join(",") + "''')");
+                    
+                    handlePyResult().then(() =>
+                    {
+                        createPrompt(">>> ");
+                    });
                 });
             }
             catch(e)
@@ -200,50 +221,78 @@ function PythonConsole()
         });
     };
     
-    runPython("print('Test...')");
-    
     // Run python.
     pythonConsoleConnection = 
     {
         push: (code) =>
         {
-            requestAnimationFrame(() =>
+            // If we're using the worker,
+            if (pythonWorker)
             {
-                pythonWorker.postMessage
-                (
+                requestAnimationFrame(() =>
+                {
+                    pythonWorker.postMessage
+                    (
+                        {
+                            __code: code,
+                            python: "from js import __code\n_pushCode(__code)"
+                        }
+                    );
+                });
+                
+                return nextResponsePromise();
+            }
+            else
+            {
+                return new Promise((resolve, reject) =>
+                {
+                    try
                     {
-                        __code: code,
-                        python: "from js import __code\n_pushCode(__code)"
+                        window.__code = code;
+                        resolve(pyodide.runPython("from js import __code\n_pushCode(__code)"));
                     }
-                );
-            });
-            
-            console.log("Pushed code: " + code);
-            
-            return nextResponsePromise();
+                    catch(e)
+                    {
+                        reject(e);
+                    }
+                });
+            }
         }
     };
     
-    runPython("print('Welcome to Python!')");
-    
-    runPython(
-        `
+    languagePluginLoader.then(() =>
+    {
+        runPython("print('Welcome to Python!')");
+        
+        runPython(
+            `
 import io, code, sys
 from js import self, pyodide
 
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+
 class Console(code.InteractiveConsole):
-  def runcode(self, code):
-      sys.stdout = io.StringIO()
-      sys.stderr = io.StringIO()
-      sys.stdin  = io.StringIO()
-      print(pyodide.runPython("\\n".join(self.buffer)))
+    def runcode(self, code):
+        out = pyodide.runPython("\\n".join(self.buffer))
+      
+        if out != None:
+            print(out)
 
 _mainConsole = Console(locals=globals())
 
 def _pushCode(code):
-  return _mainConsole.push(code)
-
-print ("Loaded.")`);
-    
-    createPrompt();
+    return _mainConsole.push(code)
+`);
+        
+        handlePyResult().then(() =>
+        {
+            consoleWindow.editControl.appendLine("");
+            
+            requestAnimationFrame(() =>
+            {
+                createPrompt();
+            });
+        });
+    });
 }
