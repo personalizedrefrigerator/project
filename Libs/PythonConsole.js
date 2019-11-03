@@ -184,9 +184,18 @@ function PythonConsole()
                     if (promptLine)
                     {
                         promptLine.text = newLine.text;
-                        promptLine.focus();
                         
-                        consoleWindow.scrollToFocus();
+                        // Postpone focusing -- the
+                        //enter command might still be 
+                        //being processed.
+                        requestAnimationFrame(() =>
+                        {
+                            promptLine.focus();
+                            
+                            consoleWindow.scrollToFocus();
+                            
+                            consoleWindow.render();
+                        });
                     }
                 };
                 
@@ -225,6 +234,9 @@ function PythonConsole()
                 {
                     error = error + "";
                     runPython("sys.stderr.write('''" + error.split("'''").join(",") + "''')");
+                    
+                    pythonConsoleConnection.push("") // Push more code to the console -- allows the
+                                                     //next command to work.
                     
                     handlePyResult().then(() =>
                     {
@@ -295,8 +307,6 @@ function PythonConsole()
     
     languagePluginLoader.then(() =>
     {
-        runPython("print('Welcome to Python!')");
-        
         runPython(
             `
 import io, code, sys
@@ -316,15 +326,67 @@ _mainConsole = Console(locals=globals())
 
 def _pushCode(code):
     return _mainConsole.push(code)
-`);
-        
-        handlePyResult().then(() =>
+
+# Define a pyodide-specific help menu.
+# TODO Finish this
+def help_pyodide():
+    print ("Welcome to the Python console.")
+    print ("This help message (not created")
+    print ("by Pyodide) is currently under")
+    print ("development! It is a TODO.")
+    print ("------Loading Libraries-----")
+    print ("1.  from js import pyodide")
+    print ("2.  pyodide.loadPackage('package_name_here')")
+    print ()
+    print ("   The first line requests that")
+    print ("  the pyodide object defined in")
+    print ("  JavaScript be imported --    ")
+    print ("  that python be given access to")
+    print ("  it.")
+    print ("   On line two, having gotten")
+    print ("  access to this package, we ")
+    print ("  load a package with name   ")
+    print ("  package_name_here.")
+    print ("   Packages available in this")
+    print ("  way include matplotlib,    ")
+    print ("  numpy, pandas, and others. ")
+    print (" (See Pyodide's documentation)")
+    print ()
+    print ()
+    print ("------Interacting With JavaScript-------")
+    print ("    from js import document")
+    print ()
+    print ("    As explained previously, objects can")
+    print ("  imported from JavaScript! The example")
+    print ("  makes the object document visible to")
+    print ("  Python.")
+    print ()
+    print ()
+    print ("------Limitations---------------------")
+    print ("    Currently, input() calls result in")
+    print (" a prompt requesting input. This is not")
+    print (" desirable. Additional information")
+    print (" might be put here in the future.")
+
+# Display a banner.
+print (sys.version)
+print ("Python from Pyodide")
+print ("(From Mozilla. See https://github.com/iodide-project/pyodide)")
+print ("See the provided site for \\nPyodide's source and license.")
+print (" Type help() for help license() for Python's license")
+print (" or credits for Python's credits.")
+print (" For pyodide-related help, type help_pyodide()")
+print ("------------------------------")
+`).then(() =>
         {
-            consoleWindow.editControl.appendLine("");
-            
-            requestAnimationFrame(() =>
+            handlePyResult().then(() =>
             {
-                createPrompt();
+                consoleWindow.editControl.appendLine("");
+                
+                requestAnimationFrame(() =>
+                {
+                    createPrompt();
+                });
             });
         });
     });
