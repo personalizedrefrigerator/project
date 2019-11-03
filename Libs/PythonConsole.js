@@ -10,8 +10,11 @@ function PythonConsole()
     let consoleWindow = EditorHelper.openWindowedEditor("%%% PY");
     let pythonConsoleConnection = { push: (content) => { console.error("NOT INITIALIZED"); } };
     let promptColor = "orange";
-    let STDOUT_COLOR = "#00ffff";
-    let STDERR_COLOR = "#ffaaaa";
+    const STDOUT_COLOR = "#33ffaa";
+    const STDERR_COLOR = "#ffaaaa";
+    const CONTINUED_LINE_PROMPT_TEXT = "... ";
+    const PROMPT_TEXT = ">>> ";
+    const AUTO_INDENT_INDENT_CHARS = "    ";
     
     // Get the background worker.
     const pythonWorker = PYTHON_WORKER;
@@ -130,6 +133,8 @@ function PythonConsole()
                 {
                     return STDOUT_COLOR;
                 };
+                
+                line.editable = false;
             });
         }
         
@@ -146,6 +151,8 @@ function PythonConsole()
                 {
                     return STDERR_COLOR;
                 };
+                
+                line.editable = false;
             });
         }
     
@@ -155,10 +162,40 @@ function PythonConsole()
         });
     };
     
+    let indentContinuedLine = (newPromptText, previousPromptText) =>
+    {
+        // Indent.
+        for (let i = 0; i < previousPromptText.length; i++)
+        {
+            if (previousPromptText.charAt(i) == " ")
+            {
+                newPromptText += " ";
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        // Did the previous line end in a colon?
+        if (previousPromptText.trim().endsWith(":"))
+        {
+            newPromptText += AUTO_INDENT_INDENT_CHARS;
+        }
+        
+        // Did the previous line end in spaces?
+        if (previousPromptText.endsWith(AUTO_INDENT_INDENT_CHARS))
+        {
+            newPromptText = CONTINUED_LINE_PROMPT_TEXT;
+        }
+        
+        return newPromptText;
+    };
+    
     let promptLine = undefined;
     let createPrompt = (promptText) =>
     {    
-        promptText = promptText || ">>> ";
+        promptText = promptText || PROMPT_TEXT;
         
         let newLine = consoleWindow.editControl.appendLine(promptText);
         
@@ -210,38 +247,32 @@ function PythonConsole()
                     {
                         handlePyResult().then(() =>
                         {
-                            createPrompt(">>> ");
+                            createPrompt(PROMPT_TEXT);
                         });
                     }
                     else
                     {
-                        let newPrompt = createPrompt("... ");
+                        let newPrompt = createPrompt(CONTINUED_LINE_PROMPT_TEXT);
                         
-                        // Indent.
-                        for (let i = 0; i < codeToRun.length; i++)
-                        {
-                            if (codeToRun.charAt(i) == " ")
-                            {
-                                newPrompt.text += " ";
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
+                        newPrompt.text = indentContinuedLine(newPrompt.text, codeToRun);
                     }
                 }).catch((error) =>
                 {
                     error = error + "";
                     runPython("sys.stderr.write('''" + error.split("'''").join(",") + "''')");
                     
-                    pythonConsoleConnection.push("") // Push more code to the console -- allows the
-                                                     //next command to work.
-                    
-                    handlePyResult().then(() =>
+                    let onComplete = () =>
                     {
-                        createPrompt(">>> ");
-                    });
+                    
+                        handlePyResult().then(() =>
+                        {
+                            createPrompt(PROMPT_TEXT);
+                        });
+                    };
+                    
+                    // Push more code to the console. This completes
+                    //the command for which an error was thrown.
+                    pythonConsoleConnection.push("print('...')").then(onComplete).catch(onComplete);
                 });
             }
             catch(e)
