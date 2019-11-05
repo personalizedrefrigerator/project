@@ -3,6 +3,7 @@
 const PYODIDE_WEB_WORKER_URL = "Pyodide/webworker.js";
 const USE_PYTHON_WORKER = false;
 const PYTHON_WORKER = USE_PYTHON_WORKER ? new Worker(PYODIDE_WEB_WORKER_URL) : undefined;
+let PYTHON_CONSOLE_GLOBAL_ID_COUNTER = 0; // Lets python access an associated editor.
 
 function PythonConsole()
 {
@@ -15,6 +16,10 @@ function PythonConsole()
     const CONTINUED_LINE_PROMPT_TEXT = "... ";
     const PROMPT_TEXT = ">>> ";
     const AUTO_INDENT_INDENT_CHARS = "    ";
+    const EDITOR_GLOBAL_ID = "_PythonConsoleObject" + PYTHON_CONSOLE_GLOBAL_ID_COUNTER++;
+    
+    // Make it accessible.
+    self[EDITOR_GLOBAL_ID] = this;
     
     // Get the background worker.
     const pythonWorker = PYTHON_WORKER;
@@ -311,7 +316,7 @@ function PythonConsole()
                     (
                         {
                             __code: code,
-                            python: "from js import __code\n_pushCode(__code)"
+                            python: "from js import __code\n_pushCode" + EDITOR_GLOBAL_ID + "(__code)"
                         }
                     );
                 });
@@ -325,7 +330,7 @@ function PythonConsole()
                     try
                     {
                         window.__code = code;
-                        resolve(pyodide.runPython("from js import __code\n_pushCode(__code)"));
+                        resolve(pyodide.runPython("from js import __code\n_pushCode" + EDITOR_GLOBAL_ID + "(__code)"));
                     }
                     catch(e)
                     {
@@ -334,6 +339,11 @@ function PythonConsole()
                 });
             }
         }
+    };
+    
+    this.codeRefresh = function()
+    {
+        handlePyResult();
     };
     
     languagePluginLoader.then(() =>
@@ -346,17 +356,39 @@ from js import self, pyodide
 sys.stdout = io.StringIO()
 sys.stderr = io.StringIO()
 
-class Console(code.InteractiveConsole):
+# When the editor detects a returned promise...
+def _Console_promiseFinished${EDITOR_GLOBAL_ID}(message):
+    from js import ${EDITOR_GLOBAL_ID}
+    
+    print (message) # Show the message
+    
+    # Refresh the editor.
+    ${EDITOR_GLOBAL_ID}.codeRefresh();
+
+# Prefix the console class!
+# If running in the window's cPython runtime,
+#it might be shared with other consoles!
+class Console${EDITOR_GLOBAL_ID}(code.InteractiveConsole):
     def runcode(self, code):
         out = pyodide.runPython("\\n".join(self.buffer))
       
         if out != None:
             print(out)
+            
+            # Is it a promise?
+            if "then" in dir(out):
+                try:
+                    out.then(
+                            lambda message: _Console_promiseFinished${EDITOR_GLOBAL_ID}
+                                ("%s: %s" % (str(out), message))
+                            )
+                except Exception as e:
+                    sys.stderr.write("Internal Error: " + str(e))
 
-_mainConsole = Console(locals=globals())
+_mainConsole${EDITOR_GLOBAL_ID} = Console${EDITOR_GLOBAL_ID}(locals=globals())
 
-def _pushCode(code):
-    return _mainConsole.push(code)
+def _pushCode${EDITOR_GLOBAL_ID}(code):
+    return _mainConsole${EDITOR_GLOBAL_ID}.push(code)
 
 # Define a pyodide-specific help menu.
 # TODO Finish this
@@ -403,11 +435,10 @@ def help_pyodide():
 print (sys.version)
 print ("Python from Pyodide")
 print ("(From Mozilla. See https://github.com/iodide-project/pyodide)")
-print ("See the provided site for \\nPyodide's source and license.")
-print (" Type help() for help license() for Python's license")
-print (" or credits for Python's credits.")
-print (" For pyodide-related help, type help_pyodide()")
-print ("------------------------------")
+print ("See the provided site for Pyodide's source and license.")
+print (" Try typing help(), license() or credits for more information.")
+print (" For pyodide-related help, try help_pyodide().")
+print ("--------------------------------------------------------------")
 `).then(() =>
         {
             handlePyResult().then(() =>

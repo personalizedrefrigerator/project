@@ -933,6 +933,7 @@ function PythonHighlightScheme(originalHighlighter)
         "break": "#bb00ee",
         "import": "#ffaa00",
         "from": "#ffaa00",
+        "as": "#ffaa00",
         "len": "#77eecc",
         "exec": "#ff7777",
         "print": "#ff00ff",
@@ -945,7 +946,9 @@ function PythonHighlightScheme(originalHighlighter)
         "^": "#80aaff",
         "(": "#ffaece",
         ")": "#ffaece",
-        ":": "#ffbece"
+        ":": "#ffbece",
+        "async": "#ff7777",
+        "await": "#ff7777"
     };
 
 
