@@ -1,0 +1,102 @@
+From 84930544ed7ff530e97ba1ddde33385577bf0e70 Mon Sep 17 00:00:00 2001
+From: Henry Heino <personalizedrefrigerator@gmail.com>
+Date: Mon, 4 Nov 2019 20:20:13 -0800
+Subject: [PATCH 1/2] Added node_modules to gitignore.
+
+---
+ .gitignore | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/.gitignore b/.gitignore
+index 1fccc3e..97438c7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -29,3 +29,5 @@ CLAPACK/clapack.tgz
+ jedi/jedi-0.15.1
+ parso/parso-0.5.1
+ *.egg-info/
++
++node_modules/
+-- 
+2.17.1
+
+
+From 9fb1f2b806986d91b9a68351eeda26b822d295fb Mon Sep 17 00:00:00 2001
+From: Henry Heino <personalizedrefrigerator@gmail.com>
+Date: Mon, 4 Nov 2019 21:03:59 -0800
+Subject: [PATCH 2/2] Changed matplotlib's display to SubWindowHelper.js
+
+---
+ packages/matplotlib/src/wasm_backend.py | 39 ++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 8 deletions(-)
+
+diff --git a/packages/matplotlib/src/wasm_backend.py b/packages/matplotlib/src/wasm_backend.py
+index f60ffe7..f9524be 100644
+--- a/packages/matplotlib/src/wasm_backend.py
++++ b/packages/matplotlib/src/wasm_backend.py
+@@ -27,6 +27,10 @@ from js import ImageData
+ 
+ interactive(True)
+ 
++"""
++    Abstract. Subclass this and override create_root_element
++    for use.
++"""
+ class FigureCanvasWasm(backend_agg.FigureCanvasAgg):
+     supports_blit = False
+ 
+@@ -101,13 +105,9 @@ class FigureCanvasWasm(backend_agg.FigureCanvasAgg):
+         return (getattr(window, 'devicePixelRatio', 0) or 1) / backing_store
+ 
+     def create_root_element(self):
+-        # Designed to be overridden by subclasses for use in contexts other
+-        # than iodide.
+-        try:
+-            from js import iodide
+-            return iodide.output.element('div')
+-        except ImportError:
+-            return document.createElement('div')
++        #  Throw -- this class should be abstract and subclassed by
++        # any implementers.
++        raise NotImplementedError("Should be implemented by a subclass.")
+ 
+     def show(self):
+         # If we've already shown this canvas elsewhere, don't create a new one,
+@@ -581,10 +581,33 @@ class TimerWasm(backend_bases.TimerBase):
+             self._timer_stop()
+             self._timer_start()
+ 
++class FigureCanvasWasmWin(FigureCanvasWasm):
++    def __init__(self, *args, **kwargs):
++        FigureCanvasWasm.__init__(self, *args, **kwargs)
++    def create_root_element(self):
++        try:
++            from js import SubWindowHelper
++            outputWindow = SubWindowHelper.create(
++            {
++                "title": "Matplotlib Output",
++                "content": ""
++            })
++
++            outputDiv = document.createElement("div")
++            
++            outputWindow.appendChild(outputDiv)
++
++            return outputDiv
++        except ImportError:
++            try:
++                from js import iodide
++                return iodide.output.element('div')
++            except ImportError:
++                return document.createElement('div')
+ 
+ @_Backend.export
+ class _BackendWasmCoreAgg(_Backend):
+-    FigureCanvas = FigureCanvasWasm
++    FigureCanvas = FigureCanvasWasmWin
+     FigureManager = FigureManagerWasm
+ 
+     @staticmethod
+-- 
+2.17.1
+
