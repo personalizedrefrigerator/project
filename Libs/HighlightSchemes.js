@@ -948,7 +948,10 @@ function PythonHighlightScheme(originalHighlighter)
         ")": "#ffaece",
         ":": "#ffbece",
         "async": "#ff7777",
-        "await": "#ff7777"
+        "await": "#ff7777",
+        "isinstance": "#ffcc88",
+        "dir": "#ffcc88",
+        "list": "#ff88ff"
     };
 
 

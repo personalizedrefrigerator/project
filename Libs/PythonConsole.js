@@ -356,11 +356,52 @@ from js import self, pyodide
 sys.stdout = io.StringIO()
 sys.stderr = io.StringIO()
 
+def _formattedPrint(inputObject, currentDepth = 0):
+    MAX_LINE_LEN = 100 # Wrap lines at 100 chars
+    
+    indent = " " * currentDepth
+    
+    output = str(inputObject)
+    
+    # Wrap the output at MAX_LINE_LEN characters.
+    lines = output.split("\\n")
+    wrappedOutput = ""
+    
+    wordSeparators = [' ', ',', '.', '/']
+    
+    for i in lines:
+        curLine = str(i)
+        
+        while len(curLine) > MAX_LINE_LEN:
+            # Does it have an ending space?
+            breakIndex = -1
+            
+            fullLine = curLine
+            curLine = curLine[0:MAX_LINE_LEN]
+            
+            # Try to make breakIndex not -1.
+            for sep in wordSeparators:
+                if breakIndex != -1:
+                    break
+                breakIndex = curLine.rfind(sep)
+            
+            if breakIndex == -1:
+                breakIndex = MAX_LINE_LEN
+            
+            wrappedOutput += curLine[0:breakIndex] + "\\n"
+            curLine = fullLine[breakIndex:]
+        
+        wrappedOutput += curLine + "\\n"
+    
+    # Print the wrapped output, excluding the final line-break.
+    print (wrappedOutput[0:len(wrappedOutput) - 1])    
+
 # When the editor detects a returned promise...
-def _Console_promiseFinished${EDITOR_GLOBAL_ID}(message):
+def _Console_promiseFinished${EDITOR_GLOBAL_ID}(objectName, message):
     from js import ${EDITOR_GLOBAL_ID}
     
-    print (message) # Show the message
+    print (objectName)
+    _formattedPrint(message, 1) # Show the message
     
     # Refresh the editor.
     ${EDITOR_GLOBAL_ID}.codeRefresh();
@@ -370,17 +411,20 @@ def _Console_promiseFinished${EDITOR_GLOBAL_ID}(message):
 #it might be shared with other consoles!
 class Console${EDITOR_GLOBAL_ID}(code.InteractiveConsole):
     def runcode(self, code):
+        from js import pyodide
+        
         out = pyodide.runPython("\\n".join(self.buffer))
       
         if out != None:
-            print(out)
+            _formattedPrint(out)
             
             # Is it a promise?
             if "then" in dir(out):
                 try:
                     out.then(
-                            lambda message: _Console_promiseFinished${EDITOR_GLOBAL_ID}
-                                ("%s: %s" % (str(out), message))
+                            lambda message: 
+                                _Console_promiseFinished${EDITOR_GLOBAL_ID}
+                                                    ("%s: " % out, message)
                             )
                 except Exception as e:
                     sys.stderr.write("Internal Error: " + str(e))
