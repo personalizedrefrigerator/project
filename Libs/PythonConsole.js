@@ -8,7 +8,16 @@ let PYTHON_CONSOLE_GLOBAL_ID_COUNTER = 0; // Lets python access an associated ed
 function PythonConsole()
 {
     // Create UI.
-    let consoleWindow = EditorHelper.openWindowedEditor("%%% PY");
+    let consoleWindow = EditorHelper.openWindowedEditor("%%% PY", undefined, 
+    {
+        title: "Python Console",
+        configureWindows: (runWindow, importExportWindow, keyboardWindow, viewerWindow) =>
+        {
+            // Close unneeded windows.
+            runWindow.close();
+            importExportWindow.close();
+        }
+    });
     let pythonConsoleConnection = { push: (content) => { console.error("NOT INITIALIZED"); } };
     let promptColor = "orange";
     const STDOUT_COLOR = "#33ffaa";
@@ -483,6 +492,11 @@ print ("See the provided site for Pyodide's source and license.")
 print (" Try typing help(), license() or credits for more information.")
 print (" For pyodide-related help, try help_pyodide().")
 print ("--------------------------------------------------------------")
+
+license.MAXLINES = 1000 # As of the time of this writing, input() displays
+                        # a prompt dialogue. This is undesirable, so the
+                        # entire license message should be printed (or
+                        # close to it).
 `).then(() =>
         {
             handlePyResult().then(() =>

@@ -1053,7 +1053,7 @@ function PythonHighlightScheme(originalHighlighter)
 
     var addedLabels = {};
     this.labelPrecedence =
-    [["COMMENT", "QUOTE2", "QUOTE1", "LONG_QUOTE", SyntaxHelper.COMMENT_MULTI_LINE], "=>", [">", "=", "<"]];
+    [["COMMENT", "LONG_QUOTE", "QUOTE2", "QUOTE1", SyntaxHelper.COMMENT_MULTI_LINE], "=>", [">", "=", "<"]];
 
     // Add any un-recorded labels to the precedence list.
     for (var i = 0; i < this.labelPrecedence.length; i++)

@@ -2600,7 +2600,7 @@ EditorHelper.openWindowedEditor = (initialText, onComplete, options) =>
     let runWindow = SubWindowHelper.create({ title: "Run", minWidth: 100, minHeight: 100 });
     let importExportWindow = SubWindowHelper.create({ title: "Import or Export", noResize: true });
     let keyboardWindow = SubWindowHelper.create({ title: "Keyboard", alwaysOnTop: true, noResize: true });
-    let viewerWindow = SubWindowHelper.create({ title: "View and Edit", minWidth: 350, minHeight: 350 });
+    let viewerWindow = SubWindowHelper.create({ title: options.title || "View and Edit", minWidth: 350, minHeight: 350 });
 
     viewerWindow.content.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
     viewerWindow.enableFlex();
@@ -2634,9 +2634,9 @@ EditorHelper.openWindowedEditor = (initialText, onComplete, options) =>
         editor.editControl.render();
     }
     
-    if (options.onRun)
+    if (options.configureWindows)
     {
-        runWindow.close();
+        options.configureWindows(runWindow, importExportWindow, keyboardWindow, viewerWindow);
     }
     
     return editor;
