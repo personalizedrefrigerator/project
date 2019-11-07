@@ -8,6 +8,7 @@ function SimpleGame(options)
     
     let canvas = document.createElement("canvas");
     let textureCanvas = document.createElement("canvas");
+    let shouldStop = false;
     
     if (!options.parentElement)
     {
@@ -45,7 +46,11 @@ function SimpleGame(options)
     cubeObject.bufferData("a_texCoord", ModelHelper.Objects.Cube.getTexCoords());
     cubeObject.bufferData("a_color", JSHelper.getArrayOfRandomColors(
         ModelHelper.Objects.Cube.getVerticies().length,
-        false, 3, 0.5, 0.6, 0.8, 0.9, 0.4, 0.5);
+        false, 3, 0.5, 0.6, 0.8, 0.9, 0.4, 0.5));
+    
+    let nowTime = (new Date()).getTime();
+    
+    let world = new WorldHelper.BasicWorld();
     
     let render = () =>
     {
@@ -57,11 +62,37 @@ function SimpleGame(options)
             canvas.height = canvas.clientHeight;
         }
         
+        me.renderer.clear();
         
+        world.render(me.renderer, cubeObject);
+        
+        me.renderer.display(ctx);
+    };
+    
+    let animate = () =>
+    {
+        let nowTime = (new Date()).getTime();
+        
+        world.tick(nowTime - lastTime);
+        
+        lastTime = nowTime;
+    };
+    
+    this.mainloop = () =>
+    {
+        if (!shouldStop)
+        {
+            render();
+            
+            requestAnimationFrame(() =>
+            {
+                me.mainloop.apply(me);
+            });
+        }
     };
     
     this.stop = () =>
     {
-        
+        shouldStop = true;
     };
 }

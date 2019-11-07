@@ -1,0 +1,40 @@
+
+.fa-home:after
+{
+    content: "🏠️";
+    position: relative;
+    left: -1em;
+    font-size: 1em;
+}
+
+.fa-arrow-left:after
+{
+    content: "<";
+    position: relative;
+    left: -1em;
+    font-size: 1em;
+}
+
+.fa-arrow-right:after
+{
+    content: ">";
+    position: relative;
+    left: -1em;
+    font-size: 1em;
+}
+
+.fa-arrows:after
+{
+    content: "🔄️";
+    position: relative;
+    left: -1em;
+    font-size: 1em;
+}
+
+.fa-search-plus:after
+{
+    content: "➕️";
+    position: relative;
+    left: -1em;
+    font-size: 1em;
+}

@@ -15,12 +15,13 @@
     <!-- Links for styles specific to helper functions -->
     <link rel = "stylesheet" type = "text/css" href = "subWindowStyles.css"/>
     <link rel = "stylesheet" type = "text/css" href = "widgetStyles.css"/>
+    <link rel = "stylesheet" type = "text/css" href = "Pyodide/matplotlibOutputStyles.css"/>
 
     <!-- Page specific styles. -->
     <style>
     body
     {
-        background-image: radial-gradient(rgba(100, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
+        background-image: radial-gradient(rgba(10, 10, 10, 0.8), rgba(0, 0, 0, 0.9));
 
         background-size: 5px 5px;
     }
@@ -34,12 +35,9 @@
 
 const ABOUT_PROGRAM = 
 `
-    This program is licensed to you under version
-    3.0 of the GNU Public License (GPL). A copy of this
-    license should have been included with this
-    program. If not, see 
-    https://www.gnu.org/licenses/gpl-3.0 and look
-    for the GPLv3.0 license.
+    This program is licensed to tou under version two
+    of the Mozilla Public License. A copy of this license
+    should have been distributed with this program.
 `;
 
 const DISCLAIMER =
@@ -120,6 +118,7 @@ const DISCLAIMER =
 
 <script src = "Renderer.js"></script>
 <script src = "IntroScreen.js"></script>
+<script src = "Game.js"></script>
 
 <!-- Include libraries that make use of other, third-party libraries. -->
 <script src = "PythonConsole.js"></script>

@@ -1,0 +1,212 @@
+From 9109a88521142f428f62e84deb9b595abaa8a9b2 Mon Sep 17 00:00:00 2001
+From: Henry Heino <kingulysses@live.com>
+Date: Wed, 6 Nov 2019 15:19:58 -0800
+Subject: [PATCH] Initial changes for other project.
+
+---
+ .gitignore                              |  2 +
+ Makefile                                |  7 ++-
+ packages/matplotlib/src/wasm_backend.py | 39 ++++++++++---
+ src/webworker.js                        | 78 ++++++++++++++++++-------
+ 4 files changed, 95 insertions(+), 31 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 1fccc3e..97438c7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -29,3 +29,5 @@ CLAPACK/clapack.tgz
+ jedi/jedi-0.15.1
+ parso/parso-0.5.1
+ *.egg-info/
++
++node_modules/
+diff --git a/Makefile b/Makefile
+index 518f604..8eaa92e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,6 +12,9 @@ CLAPACK=CLAPACK/CLAPACK-WA/lapack_WA.bc
+ PYODIDE_EMCC=$(PYODIDE_ROOT)/ccache/emcc
+ PYODIDE_CXX=$(PYODIDE_ROOT)/ccache/em++
+ 
++# TODO Replace this with custom hosting location
++PACKAGE_HOST_LOCATION=https://personalizedrefrigerator.github.io/project/Libs/Pyodide/ #https://pyodide.cdn.iodide.io/
++
+ SHELL := /bin/bash
+ CC=emcc
+ CXX=em++
+@@ -100,7 +103,7 @@ build/pyodide_dev.js: src/pyodide.js
+ 
+ build/pyodide.js: src/pyodide.js
+ 	cp $< $@
+-	sed -i -e 's#{{DEPLOY}}#https://pyodide.cdn.iodide.io/#g' $@
++	sed -i -e 's#{{DEPLOY}}#$(PACKAGE_HOST_LOCATION)#g' $@
+ 
+ 	sed -i -e "s#{{ABI}}#$(PYODIDE_PACKAGE_ABI)#g" $@
+ 
+@@ -118,7 +121,7 @@ build/renderedhtml.css: src/renderedhtml.less
+ 
+ build/webworker.js: src/webworker.js
+ 	cp $< $@
+-	sed -i -e 's#{{DEPLOY}}#https://pyodide.cdn.iodide.io/#g' $@
++	sed -i -e 's#{{DEPLOY}}#$(PACKAGE_HOST_LOCATION)#g' $@
+ 
+ build/webworker_dev.js: src/webworker.js
+ 	cp $< $@
+diff --git a/packages/matplotlib/src/wasm_backend.py b/packages/matplotlib/src/wasm_backend.py
+index f60ffe7..f9524be 100644
+--- a/packages/matplotlib/src/wasm_backend.py
++++ b/packages/matplotlib/src/wasm_backend.py
+@@ -27,6 +27,10 @@ from js import ImageData
+ 
+ interactive(True)
+ 
++"""
++    Abstract. Subclass this and override create_root_element
++    for use.
++"""
+ class FigureCanvasWasm(backend_agg.FigureCanvasAgg):
+     supports_blit = False
+ 
+@@ -101,13 +105,9 @@ class FigureCanvasWasm(backend_agg.FigureCanvasAgg):
+         return (getattr(window, 'devicePixelRatio', 0) or 1) / backing_store
+ 
+     def create_root_element(self):
+-        # Designed to be overridden by subclasses for use in contexts other
+-        # than iodide.
+-        try:
+-            from js import iodide
+-            return iodide.output.element('div')
+-        except ImportError:
+-            return document.createElement('div')
++        #  Throw -- this class should be abstract and subclassed by
++        # any implementers.
++        raise NotImplementedError("Should be implemented by a subclass.")
+ 
+     def show(self):
+         # If we've already shown this canvas elsewhere, don't create a new one,
+@@ -581,10 +581,33 @@ class TimerWasm(backend_bases.TimerBase):
+             self._timer_stop()
+             self._timer_start()
+ 
++class FigureCanvasWasmWin(FigureCanvasWasm):
++    def __init__(self, *args, **kwargs):
++        FigureCanvasWasm.__init__(self, *args, **kwargs)
++    def create_root_element(self):
++        try:
++            from js import SubWindowHelper
++            outputWindow = SubWindowHelper.create(
++            {
++                "title": "Matplotlib Output",
++                "content": ""
++            })
++
++            outputDiv = document.createElement("div")
++            
++            outputWindow.appendChild(outputDiv)
++
++            return outputDiv
++        except ImportError:
++            try:
++                from js import iodide
++                return iodide.output.element('div')
++            except ImportError:
++                return document.createElement('div')
+ 
+ @_Backend.export
+ class _BackendWasmCoreAgg(_Backend):
+-    FigureCanvas = FigureCanvasWasm
++    FigureCanvas = FigureCanvasWasmWin
+     FigureManager = FigureManagerWasm
+ 
+     @staticmethod
+diff --git a/src/webworker.js b/src/webworker.js
+index c8db52b..82d9716 100644
+--- a/src/webworker.js
++++ b/src/webworker.js
+@@ -1,25 +1,61 @@
+ self.languagePluginUrl = '{{DEPLOY}}'
+-importScripts('./pyodide.js')
++importScripts('pyodide.js');
+ 
+-var onmessage = function(e) { // eslint-disable-line no-unused-vars
+-  languagePluginLoader.then(() => {
+-    const data = e.data;
+-    const keys = Object.keys(data);
+-    for (let key of keys) {
+-      if (key !== 'python') {
+-        // Keys other than python must be arguments for the python script.
+-        // Set them on self, so that `from js import key` works.
+-        self[key] = data[key];
+-      }
++// Create a list of messages to be handled by the worker.
++let messagesToHandle = [];
++let handleMessages = undefined; // A function to be defined
++                                //after loading Pyodide --
++                                //it lets the worker handle
++                                //messages from the client.
++
++// When the client sends a message...
++self.addEventListener("message", function(e) 
++{
++    messagesToHandle.push(e);
++    
++    // Can we handle the messages yet?
++    if (handleMessages)
++    {
++        handleMessages();
+     }
++});
+ 
+-    self.pyodide.runPythonAsync(data.python, () => {})
+-        .then((results) => { self.postMessage({results}); })
+-        .catch((err) => {
+-          // if you prefer messages with the error
+-          self.postMessage({error : err.message});
+-          // if you prefer onerror events
+-          // setTimeout(() => { throw err; });
+-        });
+-  });
+-}
++languagePluginLoader.then(() => 
++{
++    // We can now handle messages!
++    handleMessages = function() 
++    { // eslint-disable-line no-unused-vars
++      for (var i = 0; i < messagesToHandle.length; i++)
++      {
++        const e = messagesToHandle[i];
++        const data = e.data;
++        const keys = Object.keys(data);
++        
++        for (let key of keys) 
++        {
++          if (key !== 'python') 
++          {
++            // Keys other than python must be arguments for the python script.
++            // Set them on self, so that `from js import key` works.
++            self[key] = data[key];
++          }
++        }
++
++        self.pyodide.runPythonAsync(data.python, () => {})
++            .then((results) => { self.postMessage({results}); })
++            .catch((err) => 
++            {
++              // if you prefer messages with the error
++              self.postMessage({error : err.message});
++              // if you prefer onerror events
++              // setTimeout(() => { throw err; });
++            });
++      }
++      
++      messagesToHandle = [];
++    };
++    
++    // Handle any messages that have
++    //been received...
++    handleMessages();
++});
+\ No newline at end of file
+-- 
+2.20.1
+

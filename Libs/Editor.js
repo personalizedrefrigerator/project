@@ -429,7 +429,7 @@ function EditControl(ctx)
 
         var i;
 
-        for (i = -me.viewOffset; i < me.lines.length; i++)
+        for (i = Math.max(-me.viewOffset - 1, 0); i < me.lines.length; i++)
         {
             me.lines[i].x = me.x;
             me.lines[i].h = me.lineH;
