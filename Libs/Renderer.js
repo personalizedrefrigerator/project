@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * A simple WebGL-based rendering object.
+ */
+
 function Renderer()
 {
     var me = this;
@@ -116,7 +120,8 @@ function Renderer()
        "u_mousePosition": {},
        "u_objectId": {},
        "u_fogDecay": {},
-       "u_fogColor": {}
+       "u_fogColor": {},
+       "u_tint": {}
     };
 
     me.attributes =
@@ -176,6 +181,7 @@ function Renderer()
     uniform float u_objectId;
     uniform float u_fogDecay;
     uniform vec3 u_fogColor;
+    uniform vec3 u_tint;
 
     varying vec3 v_color;
     varying vec3 v_toLight;
@@ -225,6 +231,8 @@ function Renderer()
         {
             specular = 0.0;
         }
+
+        resultantColor += u_tint;
 
         resultantColor += specular;
         resultantColor *= lighting;
@@ -416,6 +424,7 @@ function Renderer()
         handleUniform("u_objectId", (location, value) => gl.uniform1f(location, value));
         handleUniform("u_fogDecay", (location, value) => gl.uniform1f(location, value), 10000.0); // Set the default fog amount.
         handleUniform("u_fogColor", vector3SetFunction, new Vector3(0, 0, 0), vector3TransformInput);
+        handleUniform("u_tint", vector3SetFunction, new Vector3(0, 0, 0), vector3TransformInput);
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
@@ -490,6 +499,13 @@ function Renderer()
 
         // Allow rapid switching between objects.
         return new ObjectData(vertexAttribsCollection, specificAttributeData);
+    };
+
+    // Set the tint -- a color added to the existing color of
+    //an object.
+    me.setTint = (newTint) =>
+    {
+        updateUniform(me.uniforms.u_tint, newTint);
     };
 
     // Set the clear and fog colors. Takes a vec3.

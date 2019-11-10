@@ -48,9 +48,9 @@ function SimpleGame(options)
         ModelHelper.Objects.Cube.getVerticies().length,
         false, 3, 0.5, 0.6, 0.8, 0.9, 0.4, 0.5));
     
-    let nowTime = (new Date()).getTime();
+    let lastTime = (new Date()).getTime();
     
-    let world = new WorldHelper.BasicWorld();
+    let world = WorldHelper.createBasicWorld(me.renderer);
     
     let render = () =>
     {
@@ -63,8 +63,9 @@ function SimpleGame(options)
         }
         
         me.renderer.clear();
+        me.renderer.updateCamera();
         
-        world.render(me.renderer, cubeObject);
+        world.render();
         
         me.renderer.display(ctx);
     };
