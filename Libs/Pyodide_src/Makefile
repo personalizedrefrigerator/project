@@ -7,7 +7,8 @@ pyodide:
 	bash ./patch.sh
 	cd pyodide
 	make
-	bash ./connectPyodide.sh
+	bash ./connect_pyodide.sh
 
 clean:
 	rm -rf pyodide
+	rm -rf ../Pyodide
